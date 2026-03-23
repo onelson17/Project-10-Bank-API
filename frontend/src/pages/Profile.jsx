@@ -1,15 +1,69 @@
-import React from 'react'
+import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateUserProfile } from '../redux/authSlice'
 
 function Profile() {
+  const dispatch = useDispatch()
+  const { userProfile } = useSelector((state) => state.auth)
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+
+  const handleEdit = () => {
+
+    setFirstName(userProfile?.firstName || '')
+    setLastName(userProfile?.lastName || '')
+    setIsEditing(true)
+  }
+
+  const handleSave = async () => {
+    await dispatch(updateUserProfile({ firstName, lastName }))
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+  }
+
   return (
     <main className="main bg-dark">
       <div className="header">
-        <h1>Welcome back<br />Tony Jarvis!</h1>
-        <button className="edit-button">Edit Name</button>
+        <h1>
+          Welcome back<br />
+          {userProfile?.firstName} {userProfile?.lastName}!
+        </h1>
+
+        {/* Formulaire d'édition */}
+        {isEditing ? (
+          <div className="edit-form">
+            <div className="input-wrapper">
+              <label>First Name</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
+            <div className="input-wrapper">
+              <label>Last Name</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
+            <div>
+              <button className="edit-button" onClick={handleSave}>Save</button>
+              <button className="edit-button" onClick={handleCancel}>Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <button className="edit-button" onClick={handleEdit}>Edit Name</button>
+        )}
       </div>
-      
+
       <h2 className="sr-only">Accounts</h2>
-      
 
       <section className="account">
         <div className="account-content-wrapper">
@@ -33,7 +87,6 @@ function Profile() {
         </div>
       </section>
 
-    
       <section className="account">
         <div className="account-content-wrapper">
           <h3 className="account-title">Argent Bank Credit Card (x8349)</h3>
