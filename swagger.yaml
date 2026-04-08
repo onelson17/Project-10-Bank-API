@@ -110,11 +110,226 @@ paths:
           description: Invalid Fields
         '500':
           description: Internal Server Error
+
+  # ─────────────────────────────────────────
+  # TRANSACTIONS
+  # ─────────────────────────────────────────
+
+  /accounts/{accountId}/transactions:
+    get:
+      security:
+        - Bearer: []
+      tags:
+        - Transaction Module
+      summary: Get all transactions for the current month
+      description: Returns all transactions for a specific account for the current month
+      parameters:
+        - in: header
+          name: Authorization
+          description: Attach Bearer JWT token
+          required: true
+        - in: path
+          name: accountId
+          description: ID of the account
+          required: true
+          type: string
+        - in: query
+          name: month
+          description: Month to filter transactions (format YYYY-MM). Defaults to current month.
+          required: false
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          schema:
+            $ref: '#/definitions/TransactionsResponse'
+        '400':
+          description: Invalid Fields
+        '401':
+          description: Unauthorized
+        '404':
+          description: Account not found
+        '500':
+          description: Internal Server Error
+
+  /accounts/{accountId}/transactions/{transactionId}:
+    get:
+      security:
+        - Bearer: []
+      tags:
+        - Transaction Module
+      summary: Get a single transaction detail
+      description: Returns the full details of a specific transaction
+      parameters:
+        - in: header
+          name: Authorization
+          description: Attach Bearer JWT token
+          required: true
+        - in: path
+          name: accountId
+          description: ID of the account
+          required: true
+          type: string
+        - in: path
+          name: transactionId
+          description: ID of the transaction
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Transaction retrieved successfully
+          schema:
+            $ref: '#/definitions/TransactionDetailResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Transaction or account not found
+        '500':
+          description: Internal Server Error
+
+  /accounts/{accountId}/transactions/{transactionId}/notes:
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - Transaction Module
+      summary: Add a note to a transaction
+      description: Adds a new note to an existing transaction
+      parameters:
+        - in: header
+          name: Authorization
+          description: Attach Bearer JWT token
+          required: true
+        - in: path
+          name: accountId
+          description: ID of the account
+          required: true
+          type: string
+        - in: path
+          name: transactionId
+          description: ID of the transaction
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Note to add
+          required: true
+          schema:
+            $ref: '#/definitions/NoteInput'
+      produces:
+        - application/json
+      responses:
+        '201':
+          description: Note added successfully
+          schema:
+            $ref: '#/definitions/NoteResponse'
+        '400':
+          description: Invalid Fields
+        '401':
+          description: Unauthorized
+        '404':
+          description: Transaction or account not found
+        '500':
+          description: Internal Server Error
+
+  /accounts/{accountId}/transactions/{transactionId}/notes/{noteId}:
+    put:
+      security:
+        - Bearer: []
+      tags:
+        - Transaction Module
+      summary: Update a note on a transaction
+      description: Modifies an existing note on a transaction
+      parameters:
+        - in: header
+          name: Authorization
+          description: Attach Bearer JWT token
+          required: true
+        - in: path
+          name: accountId
+          description: ID of the account
+          required: true
+          type: string
+        - in: path
+          name: transactionId
+          description: ID of the transaction
+          required: true
+          type: string
+        - in: path
+          name: noteId
+          description: ID of the note to update
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: Updated note content
+          required: true
+          schema:
+            $ref: '#/definitions/NoteInput'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Note updated successfully
+          schema:
+            $ref: '#/definitions/NoteResponse'
+        '400':
+          description: Invalid Fields
+        '401':
+          description: Unauthorized
+        '404':
+          description: Note, transaction or account not found
+        '500':
+          description: Internal Server Error
+    delete:
+      security:
+        - Bearer: []
+      tags:
+        - Transaction Module
+      summary: Delete a note from a transaction
+      description: Removes a note from an existing transaction
+      parameters:
+        - in: header
+          name: Authorization
+          description: Attach Bearer JWT token
+          required: true
+        - in: path
+          name: accountId
+          description: ID of the account
+          required: true
+          type: string
+        - in: path
+          name: transactionId
+          description: ID of the transaction
+          required: true
+          type: string
+        - in: path
+          name: noteId
+          description: ID of the note to delete
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Note deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Note, transaction or account not found
+        '500':
+          description: Internal Server Error
+
 securityDefinitions:
   Bearer:
     type: apiKey
     name: Authorization
     in: header
+
 definitions:
   User:
     properties:
@@ -164,3 +379,124 @@ definitions:
         type: string
       lastName:
         type: string
+
+  # ─────────────────────────────────────────
+  # TRANSACTIONS DEFINITIONS
+  # ─────────────────────────────────────────
+
+  Transaction:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique transaction ID
+        example: txn_001
+      date:
+        type: string
+        format: date
+        description: Date of the transaction
+        example: '2024-03-15'
+      description:
+        type: string
+        description: Transaction description
+        example: Golden Sun Bakery
+      amount:
+        type: number
+        format: double
+        description: Transaction amount
+        example: 8.00
+      balance:
+        type: number
+        format: double
+        description: Account balance after transaction
+        example: 298.00
+
+  TransactionDetail:
+    allOf:
+      - $ref: '#/definitions/Transaction'
+      - type: object
+        properties:
+          transactionType:
+            type: string
+            description: Type of transaction
+            example: Electronic
+          category:
+            type: string
+            description: Category of the transaction
+            example: Food
+          notes:
+            type: array
+            items:
+              $ref: '#/definitions/Note'
+
+  TransactionsResponse:
+    type: object
+    properties:
+      status:
+        type: integer
+        example: 200
+      message:
+        type: string
+        example: Transactions retrieved successfully
+      body:
+        type: array
+        items:
+          $ref: '#/definitions/Transaction'
+
+  TransactionDetailResponse:
+    type: object
+    properties:
+      status:
+        type: integer
+        example: 200
+      message:
+        type: string
+        example: Transaction retrieved successfully
+      body:
+        $ref: '#/definitions/TransactionDetail'
+
+  Note:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique note ID
+        example: note_001
+      content:
+        type: string
+        description: Note content
+        example: Birthday dinner
+      category:
+        type: string
+        description: Transaction category
+        example: Food
+      createdAt:
+        type: string
+        format: date-time
+        example: '2024-03-15T10:00:00Z'
+
+  NoteInput:
+    type: object
+    required:
+      - content
+    properties:
+      content:
+        type: string
+        description: Content of the note
+        example: Birthday dinner
+      category:
+        type: string
+        description: Optional category for the transaction
+        example: Food
+
+  NoteResponse:
+    type: object
+    properties:
+      status:
+        type: integer
+        example: 201
+      message:
+        type: string
+        example: Note added successfully
+      body:
+        $ref: '#/definitions/Note'

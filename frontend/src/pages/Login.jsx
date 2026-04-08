@@ -15,8 +15,6 @@ function Login() {
     e.preventDefault()
 
     const result = await dispatch(loginUser({ email, password }))
-
-    
     if (loginUser.fulfilled.match(result)) {
       await dispatch(fetchUserProfile())
       navigate('/profile')
