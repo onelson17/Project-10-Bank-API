@@ -1,5 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
+const savedToken = localStorage.getItem('token')
+
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, thunkAPI) => {
@@ -45,16 +47,16 @@ export const fetchUserProfile = createAsyncThunk(
 
 export const updateUserProfile = createAsyncThunk(
   'auth/updateUserProfile',
-  async ({ firstName, lastName }, thunkAPI) => {
+  async ({ userName }, thunkAPI) => {
     const token = thunkAPI.getState().auth.token
     try {
       const response = await fetch('http://localhost:3001/api/v1/user/profile', {
-        method: 'PUT', 
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ firstName, lastName }),
+        body: JSON.stringify({ userName }),
       })
       const data = await response.json()
       if (!response.ok) {
@@ -70,8 +72,8 @@ export const updateUserProfile = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    token: null,
-    isAuthenticated: false,
+    token: savedToken || null,
+    isAuthenticated: !!savedToken,
     userProfile: null,
     isLoading: false,
     error: null,
@@ -82,6 +84,10 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       state.userProfile = null
       state.error = null
+      localStorage.removeItem('token')
+      localStorage.removeItem('userName')
+      localStorage.removeItem('firstName')
+      localStorage.removeItem('lastName')
     },
   },
   extraReducers: (builder) => {
@@ -104,7 +110,21 @@ const authSlice = createSlice({
       })
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.isLoading = false
-        state.userProfile = action.payload
+
+        // Si l'API renvoie firstName/lastName → on les sauvegarde
+        if (action.payload.firstName) {
+          localStorage.setItem('firstName', action.payload.firstName)
+        }
+        if (action.payload.lastName) {
+          localStorage.setItem('lastName', action.payload.lastName)
+        }
+
+        state.userProfile = {
+          ...action.payload,
+          firstName: localStorage.getItem('firstName') || action.payload.firstName,
+          lastName: localStorage.getItem('lastName') || action.payload.lastName,
+          userName: localStorage.getItem('userName') || action.payload.userName || '',
+        }
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
         state.isLoading = false
@@ -112,7 +132,9 @@ const authSlice = createSlice({
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.isLoading = false
-        state.userProfile = action.payload
+        const userName = action.meta.arg.userName
+        localStorage.setItem('userName', userName)
+        state.userProfile.userName = userName
       })
   },
 })

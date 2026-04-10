@@ -6,6 +6,7 @@ import { loginUser, fetchUserProfile } from '../redux/authSlice'
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
 
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -16,6 +17,9 @@ function Login() {
 
     const result = await dispatch(loginUser({ email, password }))
     if (loginUser.fulfilled.match(result)) {
+      if (rememberMe) {
+        localStorage.setItem('token', result.payload)
+      }
       await dispatch(fetchUserProfile())
       navigate('/profile')
     }
@@ -28,10 +32,10 @@ function Login() {
         <h1>Sign In</h1>
         <form onSubmit={handleSubmit}>
           <div className="input-wrapper">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="email">Email</label>
             <input
               type="text"
-              id="username"
+              id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -46,11 +50,15 @@ function Login() {
             />
           </div>
           <div className="input-remember">
-            <input type="checkbox" id="remember-me" />
+            <input
+              type="checkbox"
+              id="remember-me"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
             <label htmlFor="remember-me">Remember me</label>
           </div>
 
-          {/* Affichage de l'erreur si mauvais identifiants */}
           {error && <p style={{ color: 'red' }}>{error}</p>}
 
           <button className="sign-in-button" disabled={isLoading}>

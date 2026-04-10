@@ -33,7 +33,7 @@ function Profile() {
       <div className="header">
       <h1>
           Welcome back<br />
-          {userProfile?.userName || userProfile?.firstName} {userProfile?.lastName}!
+          {userProfile?.userName}
       </h1>
 
         {isEditing ? (
