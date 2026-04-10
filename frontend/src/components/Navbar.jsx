@@ -28,7 +28,7 @@ function Navbar() {
           <>
             <Link className="main-nav-item" to="/profile">
               <i className="fa fa-user-circle"></i>
-              {userProfile?.firstName}
+              {userProfile?.userName || userProfile?.firstName} 
             </Link>
             <button className="main-nav-item" onClick={handleLogout}>
               <i className="fa fa-sign-out"></i>
