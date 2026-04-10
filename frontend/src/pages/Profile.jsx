@@ -32,8 +32,8 @@ function Profile() {
     <main className="main bg-dark">
       <div className="header">
       <h1>
-          Welcome back<br />
-          {userProfile?.userName}
+        Welcome back<br />
+        {userProfile?.userName || userProfile?.firstName}!
       </h1>
 
         {isEditing ? (

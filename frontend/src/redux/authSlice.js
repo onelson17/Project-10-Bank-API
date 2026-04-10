@@ -85,9 +85,6 @@ const authSlice = createSlice({
       state.userProfile = null
       state.error = null
       localStorage.removeItem('token')
-      localStorage.removeItem('userName')
-      localStorage.removeItem('firstName')
-      localStorage.removeItem('lastName')
     },
   },
   extraReducers: (builder) => {
@@ -110,20 +107,21 @@ const authSlice = createSlice({
       })
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.isLoading = false
+        const userId = action.payload.id
 
-        // Si l'API renvoie firstName/lastName → on les sauvegarde
+        // Si l'API renvoie firstName/lastName → on les sauvegarde par userId
         if (action.payload.firstName) {
-          localStorage.setItem('firstName', action.payload.firstName)
+          localStorage.setItem(`firstName_${userId}`, action.payload.firstName)
         }
         if (action.payload.lastName) {
-          localStorage.setItem('lastName', action.payload.lastName)
+          localStorage.setItem(`lastName_${userId}`, action.payload.lastName)
         }
 
         state.userProfile = {
           ...action.payload,
-          firstName: localStorage.getItem('firstName') || action.payload.firstName,
-          lastName: localStorage.getItem('lastName') || action.payload.lastName,
-          userName: localStorage.getItem('userName') || action.payload.userName || '',
+          firstName: localStorage.getItem(`firstName_${userId}`) || action.payload.firstName,
+          lastName: localStorage.getItem(`lastName_${userId}`) || action.payload.lastName,
+          userName: localStorage.getItem(`userName_${userId}`) || action.payload.userName || '',
         }
       })
       .addCase(fetchUserProfile.rejected, (state, action) => {
@@ -133,7 +131,8 @@ const authSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.isLoading = false
         const userName = action.meta.arg.userName
-        localStorage.setItem('userName', userName)
+        const userId = state.userProfile.id
+        localStorage.setItem(`userName_${userId}`, userName)
         state.userProfile.userName = userName
       })
   },
